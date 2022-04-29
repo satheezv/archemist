@@ -8,6 +8,7 @@ class yumi_sampleprep_stationStatus(Enum):
     LOAD_PLATE = 2
     CAPS = 3
 
+
 ''' ==== Station Description ==== '''
 
 class yumi_sampleprep_station(Station):
