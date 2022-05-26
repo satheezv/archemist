@@ -12,9 +12,26 @@ class pxrd_analyser(Station):
     def __init__(self, id: int, loc: Location):
         super().__init__(id, loc)
 
+    @classmethod
+    def from_dict(cls, db_name: str, station_dict):
+        return cls(db_name, station_dict)
+
+    @classmethod
+    def from_object_id(cls, db_name: str, object_id: ObjectId):
+        station_dict = {'object_id':object_id}
+        return cls(db_name, station_dict, None, None)
+
     @property
     def status(self):
         return pxrd_analyserStatus(self.get_field('status'))
+
+    @status.setter
+    def status(self, status):
+        if isinstance(status, pxrd_analyserStatus):
+            self.update_field('status', status.value)
+        else:
+            raise ValueError
+
      
 
 ''' ==== Station Operation Descriptors ==== '''
