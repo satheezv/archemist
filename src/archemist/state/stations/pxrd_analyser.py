@@ -9,12 +9,16 @@ class pxrd_analyserStatus(Enum):
 ''' ==== Station Description ==== '''
 
 class pxrd_analyser(Station):
-    def __init__(self, id: int, loc: Location):
-        super().__init__(id, loc)
+    def __init__(self, db_name: str, station_dict: dict, liquids: list, solids: list):
+        if len(station_dict) > 1:
+            station_dict['status'] = None
+
+        super().__init__(db_name,station_dict)
 
     @classmethod
-    def from_dict(cls, db_name: str, station_dict):
-        return cls(db_name, station_dict)
+    def from_dict(cls, db_name: str, station_dict: dict, liquids: list, solids: list):
+        return cls(db_name, station_dict, liquids, solids)
+
 
     @classmethod
     def from_object_id(cls, db_name: str, object_id: ObjectId):

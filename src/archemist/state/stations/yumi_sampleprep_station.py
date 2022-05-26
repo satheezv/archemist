@@ -6,16 +6,18 @@ class yumi_sampleprep_stationStatus(Enum):
     LOAD_STIR = 0
     LOAD_SHKR = 1
     LOAD_PLATE = 2
-    CAPS = 3
+    CAPS = 3 
 
 
 ''' ==== Station Description ==== '''
 
 class yumi_sampleprep_station(Station):
-    def __init__(self, id: int, loc: Location):
-        super().__init__(id, loc)
+    def __init__(self, db_name: str, station_dict: dict, liquids: list, solids: list):
+        if len(station_dict) > 1:
+            station_dict['status'] = None
 
-    @property
+        super().__init__(db_name,station_dict)
+        
     def status(self):
         return yumi_sampleprep_stationStatus(self.get_field('status'))
 
