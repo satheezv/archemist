@@ -12,9 +12,10 @@ class pxrdSM():
         self._station = pxrd_analyser
         self.batch_mode = args['batch_mode']
 
+
         ''' States '''
 
-    
+
         states = [ State(name='start', on_enter='_print_state'), 
             State(name='openpxrddoors', on_enter= ['request_openpxrd','_print_state']), 
             State(name='load_plate', on_enter=['request_loadpxrdplate', '_print_state']),
@@ -30,7 +31,7 @@ class pxrdSM():
 
        
         # open pxrd doors
-        self.machine.add_transition('process_state_transitions',source='start',dest='open_pxrddoors', conditions='is_batch_assigned')
+        self.machine.add_transition('process_state_transitions',source='start',dest='open_pxrddoors', conditions=['is_station_operation_complete','is_station_job_ready'])
         
         # load rack into the pxrd
         self.machine.add_transition('process_state_transitions', source='open_pxrddoors',dest='load_plate', conditions='is_station_job_ready', before='update_batch_loc_to_station')
@@ -45,13 +46,13 @@ class pxrdSM():
         self.machine.add_transition('process_state_transitions',source='analyse_samples',dest='open_pxrddoors', conditions='is_station_job_ready', before='process_batch')
         
         # unload rack onto kuka deck
-        self.machine.add_transition('process_state_transitions', source='open_pxrddoors',dest='unload_plate', conditions='is_station_job_ready')
+        self.machine.add_transition('process_state_transitions', source='open_pxrddoors',dest='unload_plate', conditions=['is_station_operation_complete','is_station_job_ready'])
         
         # close pxrd doors 
         self.machine.add_transition('process_state_transitions', source='unload_plate',dest='close_pxrddoors', conditions='is_station_job_ready', before='update_batch_loc_to_robot')
 
         # complete
-        self.machine.add_transition('process_state_transitions', source='close_pxrddoors',dest='finish', conditions= 'is_station_job_ready')
+        self.machine.add_transition('process_state_transitions', source='close_pxrddoors',dest='finish', conditions=['is_station_operation_complete','is_station_job_ready'])
 
 
     # functions for LBR kuka
