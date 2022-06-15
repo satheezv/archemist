@@ -1,6 +1,7 @@
 from archemist.state.robot import Robot, RobotState, PickBatchToDeckOp, PlaceBatchFromDeckOp, PickAndPlaceBatchOp, MoveSampleOp
 from archemist.state.robots.kukaLBRIIWA import KukaLBRTask, KukaNAVTask
 from archemist.state.robots.pandaFranka import PandaFranka
+from archemist.state.robots.yumi import YuMi, YuMiTask
 from archemist.state.state import State
 
 
@@ -36,6 +37,11 @@ class SimpleRobotScheduler(RobotScheduler):
                         #     if robot_job.start_location.frame_name in robot.saved_frames and robot_job.target_location.frame_name in robot.saved_frames:
                         #         robot.assign_job(station_robot_job)
                         #         job_assigned = True
+            elif isinstance(robot_job, YuMiTask):
+                for robot in state.robots:
+                    if robot.state == RobotState.IDLE and isinstance(robot,YuMi):
+                        robot.assign_job(station_robot_job)
+                        job_assigned = True
             if not job_assigned:
                 unassigned_jobs.append(station_robot_job)
         

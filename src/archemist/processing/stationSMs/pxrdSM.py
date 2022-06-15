@@ -6,23 +6,23 @@ from archemist.util import Location
 
 
 
-class pxrdSM():
+class PXRDSM():
 
-    def __init__(self, args: dict):
-        self._station = pxrd_analyser
-        self.batch_mode = args['batch_mode']
+    def __init__(self, station: Station, args: dict):
+        self._station = station
+        self.operation_complete = False
 
 
         ''' States '''
 
 
-        states = [ State(name='start', on_enter='_print_state'), 
+        states = [ State(name='init_state', on_enter='_print_state'), 
             State(name='openpxrddoors', on_enter= ['request_openpxrd','_print_state']), 
             State(name='load_plate', on_enter=['request_loadpxrdplate', '_print_state']),
             State(name='close_pxrddoors', on_enter=['request_closepxrd','_print_state']),
             State(name='analyse_samples', on_enter=['request_analyse_samples', '_print_state']),
             State(name='unload_plate', on_enter=['request_unloadpxrdplate','_print_state']), 
-            State(name='finish', on_enter=['_print_state'])]
+            State(name='finish', on_enter=['finalize_batch_processing,_print_state'])]
 
         self.machine = Machine(self, states=states, initial='start')
         
@@ -31,16 +31,16 @@ class pxrdSM():
 
        
         # open pxrd doors
-        self.machine.add_transition('process_state_transitions',source='start',dest='open_pxrddoors', conditions=['is_station_operation_complete','is_station_job_ready'])
+        self.machine.add_transition('process_state_transitions',source='init_state',dest='open_pxrddoors', conditions='is_batch_assigned')
         
         # load rack into the pxrd
-        self.machine.add_transition('process_state_transitions', source='open_pxrddoors',dest='load_plate', conditions='is_station_job_ready', before='update_batch_loc_to_station')
+        self.machine.add_transition('process_state_transitions', source='open_pxrddoors',dest='load_plate', unless='is_station_operation_complete', conditions='is_station_job_ready',)
 
         # close pxrd doors
-        self.machine.add_transition('process_state_transitions', source='load_plate',dest='close_pxrddoors', conditions='is_station_job_ready')
+        self.machine.add_transition('process_state_transitions', source='load_plate',dest='close_pxrddoors', conditions='is_station_job_ready', before='update_batch_loc_to_station')
 
         # analyse samples
-        self.machine.add_transition('process_state_transitions', source='close_pxrddoors',dest='analyse_samples', conditions='is_station_job_ready')
+        self.machine.add_transition('process_state_transitions', source='close_pxrddoors',dest='analyse_samples', unless='is_station_operation_complete', conditions='is_station_job_ready')
 
         # re-open pxrd doors
         self.machine.add_transition('process_state_transitions',source='analyse_samples',dest='open_pxrddoors', conditions='is_station_job_ready', before='process_batch')
@@ -52,26 +52,26 @@ class pxrdSM():
         self.machine.add_transition('process_state_transitions', source='unload_plate',dest='close_pxrddoors', conditions='is_station_job_ready', before='update_batch_loc_to_robot')
 
         # complete
-        self.machine.add_transition('process_state_transitions', source='close_pxrddoors',dest='finish', conditions=['is_station_operation_complete','is_station_job_ready'])
+        self.machine.add_transition('process_state_transitions', source='close_pxrddoors',dest='finish', conditions=['is_station_job_ready','is_station_operation_complete'])
 
 
     # functions for LBR kuka
     # TODO: add functions for KMR which moves closer between open/close and load/unload
 
     def request_openpxrd(self):
-        self._station.set_robot_job(KukaLBRTask('OpenPXRD', self._station.location, RobotOutputDescriptor())) 
+        self._station.set_robot_job(KukaLBRTask('OpenPXRD',[False,1], self._station.location, RobotOutputDescriptor())) 
 
     def request_loadpxrdplate(self):
-        self._station.set_robot_job(KukaLBRTask('LoadPXRD', self._station.location, RobotOutputDescriptor())) 
+        self._station.set_robot_job(KukaLBRTask('LoadPXRD',[False,1], self._station.location, RobotOutputDescriptor())) 
 
     def request_closepxrd(self):
-        self._station.set_robot_job(KukaLBRTask('ClosePXRD', self._station.location, RobotOutputDescriptor())) 
+        self._station.set_robot_job(KukaLBRTask('ClosePXRD',[False,1], self._station.location, RobotOutputDescriptor())) 
 
     def request_analyse_samples(self):
         self._station.set_station_op(pxrdProcessingOpDescriptor(dict(), pxrdJobOutputDescriptor()))
 
     def request_unloadpxrdplate(self):
-        self._station.set_robot_job(KukaLBRTask('UnloadPXRD', self._station.location, RobotOutputDescriptor())) 
+        self._station.set_robot_job(KukaLBRTask('UnloadPXRD',[False,1], self._station.location, RobotOutputDescriptor())) 
 
 
 
