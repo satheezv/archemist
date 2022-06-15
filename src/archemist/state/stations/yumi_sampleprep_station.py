@@ -2,7 +2,7 @@ from archemist.state.station import Station, Location, StationOpDescriptor, Stat
 from enum import Enum
 from bson.objectid import ObjectId
 
-class yumi_sampleprep_stationStatus(Enum):
+class YuMiSamplePrepStationStatus(Enum):
     LOAD_STIR = 0
     LOAD_SHKR = 1
     LOAD_PLATE = 2
@@ -11,19 +11,20 @@ class yumi_sampleprep_stationStatus(Enum):
 
 ''' ==== Station Description ==== '''
 
-class yumi_sampleprep_station(Station):
+class YuMiSamplePrepStation(Station):
     def __init__(self, db_name: str, station_dict: dict, liquids: list, solids: list):
         if len(station_dict) > 1:
             station_dict['status'] = None
 
         super().__init__(db_name,station_dict)
-        
+
+    @property    
     def status(self):
-        return yumi_sampleprep_stationStatus(self.get_field('status'))
+        return YuMiSamplePrepStationStatus(self.get_field('status'))
 
     @classmethod
-    def from_dict(cls, db_name: str, station_dict):
-        return cls(db_name, station_dict)
+    def from_dict(cls, db_name: str, station_dict: dict, liquids: list, solids: list):
+        return cls(db_name, station_dict, liquids, solids)
 
     @classmethod
     def from_object_id(cls, db_name: str, object_id: ObjectId):
@@ -32,37 +33,57 @@ class yumi_sampleprep_station(Station):
 
     @status.setter
     def status(self, status):
-        if isinstance(status, yumi_sampleprep_stationStatus):
+        if isinstance(status, YuMiSamplePrepStationStatus):
             self.update_field('status', status.value)
         else:
             raise ValueError
 
 ''' ==== Station Operation Descriptors ==== '''
 
+class YSStirShakeOpDescriptor(StationOpDescriptor):
+    def __init__(self, properties: dict, output: StationOutputDescriptor):
+        output = StationOutputDescriptor()
+        super().__init__(stationName=YuMiSamplePrepStation.__class__.__name__, output=output)
+        self._set_stirring_speed = properties['rpm']
+        self._stir_duration = properties['stir_duration']
+        self._shake_duration = properties['shake_duration']
+
+    @property
+    def set_stirring_speed(self):
+        return self._set_stirring_speed
+
+    @property
+    def stir_duration(self):
+        return self._stir_duration
+
+    @property
+    def shake_duration(self):
+        return self._shake_duration
+
 class YSStirOpDescriptor(StationOpDescriptor):
     def __init__(self, properties: dict, output: StationOutputDescriptor):
         output = StationOutputDescriptor()
-        super().__init__(stationName=yumi_sampleprep_station.__class__.__name__, output=output)
+        super().__init__(stationName=YuMiSamplePrepStation.__class__.__name__, output=output)
         self._set_stirring_speed = properties['rpm']
-        self._duration = properties['duration']
+        self._stir_duration = properties['stir_duration']
 
-        @property
-        def set_stirring_speed(self):
-            return self._set_stirring_speed
+    @property
+    def set_stirring_speed(self):
+        return self._set_stirring_speed
 
-        @property
-        def duration(self):
-            return self._duration
+    @property
+    def stir_duration(self):
+        return self._stir_duration
 
 class YSShakeOpDescriptor(StationOpDescriptor):
     def __init__(self, properties: dict, output: StationOutputDescriptor):
         output = StationOutputDescriptor()
-        super().__init__(stationName=yumi_sampleprep_station.__class__.__name__, output=output)
-        self._duration = properties['duration']
+        super().__init__(stationName=YuMiSamplePrepStation.__class__.__name__, output=output)
+        self._shake_duration = properties['shake_duration']
 
     @property
-    def duration(self):
-        return self._duration
+    def shake_duration(self):
+        return self._shake_duration
 
 ''' ==== Station Output Descriptors ==== '''
 

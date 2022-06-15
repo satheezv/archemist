@@ -1,0 +1,24 @@
+name: test_yumi_sp_recipe
+id: 198
+materials:
+  liquids: [water]
+  solids: [sodium_chloride]
+stations:
+  - name: YuMiSamplePrepStation.id_19
+    stationOps:
+      - type: YSStirShakeOpDescriptor
+        properties:
+          rpm: 200
+          stir_duration: 5
+          shake_duration: 5
+        output: "YSJobOutputDescriptor"
+workflowSM:
+  - state_name: start
+    onSuccess: YuMiSamplePrepStation.id_19.YSStirShakeOpDescriptor
+    onFail: end
+  - state_name: YuMiSamplePrepStation.id_19.YSStirShakeOpDescriptor
+    onSuccess: end
+    onFail: end
+  - state_name: end
+    onSuccess:
+    onFail:

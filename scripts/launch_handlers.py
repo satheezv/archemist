@@ -56,8 +56,8 @@ if __name__ == '__main__':
     args = parser.parse_args()
     
     current_dir = Path.cwd()
-    config_file_path = current_dir.joinpath('config_files/dif_demo_testing_config_file.yaml')
-    db_name = 'dif_demo'
+    config_file_path = current_dir.joinpath('config_files/yumi_ps_testing_config_file.yaml')
+    db_name = 'yumi_ps_test'
 
     try:
         # get config dict

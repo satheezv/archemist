@@ -3,17 +3,16 @@ from archemist.state.robot import MoveSampleOp, RobotOutputDescriptor
 from archemist.state.robots.kukaLBRIIWA import KukaLBRTask
 from archemist.state.robots.yumi import YuMi, YuMiTask
 from archemist.state.station import Station
-from archemist.state.stations.yumi_sampleprep_station import YSShakeOpDescriptor, YSStirOpDescriptor, YSJobOutputDescriptor
+from archemist.state.stations.yumi_sampleprep_station import YSStirShakeOpDescriptor, YSStirOpDescriptor,YSShakeOpDescriptor, YSJobOutputDescriptor
 from archemist.util.location import Location
 import archemist.persistence.objectConstructor
 
 
 
-class yumi_sampleprepSM():
+class YuMiSamplePrepSM():
 
     def __init__(self, station: Station, args: dict):
         self._station = station
-        self.batch_mode = args['batch_mode']
 
 
         ''' States '''
@@ -25,11 +24,11 @@ class yumi_sampleprepSM():
             State(name='load_shake', on_enter=['request_yumi_loadshake', '_print_state']),
             State(name='shake_plate', on_enter=['request_shaking' , '_print_state']),
             State(name='unload_shake', on_enter=['request_yumi_loadrack', '_print_state']),
-            State(name='uncap', on_enter= ['request_yumi_uncap ', '_print_state']),
-            State(name='kuka_unload_rack', on_enter= ['request_unload_rack','_print_state'])
-            State(name='finish', on_enter=[ '_print_state'])]
+            State(name='uncap', on_enter= ['request_yumi_uncap', '_print_state']),
+            State(name='kuka_unload_rack', on_enter= ['request_unload_rack','_print_state']),
+            State(name='finish', on_enter=['finalize_batch_processing','_print_state'])]
         
-        self.machine = Machine(self, states=states, initial='start')
+        self.machine = Machine(self, states=states, initial='init_state')
        
 
         ''' Transitions '''
@@ -64,7 +63,10 @@ class yumi_sampleprepSM():
 
   
     def request_load_rack(self):
-        self._station.set_robot_job(KukaLBRTask('YumiStationLoadRack',[], self._station.location, RobotOutputDescriptor())) 
+        self._station.set_robot_job(KukaLBRTask('YumiStationLoadRack',[False,1], self._station.location, RobotOutputDescriptor())) 
+
+    def request_unload_rack(self):
+        self._station.set_robot_job(KukaLBRTask('YumiStationUnLoadRack',[False,1], self._station.location, RobotOutputDescriptor())) 
 
     def update_batch_loc_to_station(self):
         self._station.assigned_batch.location = self._station.location
@@ -78,29 +80,36 @@ class yumi_sampleprepSM():
         self._station.set_robot_job(YuMiTask('LoadStir',[], self._station.location, RobotOutputDescriptor())) 
 
     def request_yumi_loadshake(self):
-        self._station.set_robot_job(YuMiTask('LoadShake', self._station.location, RobotOutputDescriptor()))
+        self._station.set_robot_job(YuMiTask('LoadShake',[], self._station.location, RobotOutputDescriptor()))
 
     def request_yumi_loadrack(self):
-        self._station.set_robot_job(YuMiTask('LoadRack', self._station.location, RobotOutputDescriptor())) 
+        self._station.set_robot_job(YuMiTask('LoadRack',[], self._station.location, RobotOutputDescriptor())) 
 
     def request_yumi_uncap(self):
-        self._station.set_robot_job(YuMiTask('Uncap', self._station.location, RobotOutputDescriptor()))
+        self._station.set_robot_job(YuMiTask('Uncap',[], self._station.location, RobotOutputDescriptor()))
 
     def request_stirring(self):
         current_op_dict = self._station.assigned_batch.recipe.get_current_task_op_dict()
         current_op = archemist.persistence.objectConstructor.ObjectConstructor.construct_station_op_from_dict(current_op_dict)
-        self._station.set_station_op(current_op)
+        stir_dict = {'rpm': current_op.set_stirring_speed, 'stir_duration': current_op.stir_duration}
+        self._station.set_station_op(YSStirOpDescriptor(stir_dict,current_op.output))
 
     def request_shaking(self):
         current_op_dict = self._station.assigned_batch.recipe.get_current_task_op_dict()
         current_op = archemist.persistence.objectConstructor.ObjectConstructor.construct_station_op_from_dict(current_op_dict)
-        self._station.set_station_op(current_op)
+        shake_dict = {'shake_duration': current_op.shake_duration}
+        self._station.set_station_op(YSShakeOpDescriptor(shake_dict,current_op.output))
 
     def is_batch_assigned(self):
         return self._station.assigned_batch is not None
 
     def is_station_job_ready(self):
         return not self._station.has_station_op() and not self._station.has_robot_job()
+
+    def finalize_batch_processing(self):
+        self._station.process_assigned_batch()
+        self.operation_complete = False
+        self.to_init_state()
 
     def _print_state(self):
         print(f'[{self.__class__.__name__}]: current state is {self.state}')
