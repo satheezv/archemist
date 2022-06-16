@@ -9,9 +9,9 @@ from archemist.state.robots.kukaLBRIIWA import KukaNAVTask
 from archemist.state.robot import RobotOutputDescriptor
 
 if __name__ == '__main__':
-    config_file_name = 'yumi_ps_testing_config_file.yaml'
-    recipe_file_name = 'yumi_ps_test_recipe.yaml'
-    db_name = 'yumi_ps_test'
+    config_file_name = 'pxrd_testing_config.yaml'
+    recipe_file_name = 'pxrd_test_recipe.yaml'
+    db_name = 'pxrd_test'
     clean_batch_location = Location(-1,-1,'/RobotDeck/Rack1')
     
     current_dir = Path.cwd()
