@@ -1,0 +1,21 @@
+name: test_pxrd_sp_recipe
+id: 198
+materials:
+  liquids: [water]
+  solids: [sodium_chloride]
+stations:
+  - name: pxrd_analyser.id_190
+    stationOps:
+      - type: pxrdProcessingOpDescriptor
+        properties:
+        output: "pxrdJobOutputDescriptor"
+workflowSM:
+  - state_name: start
+    onSuccess: pxrd_analyser.id_190.pxrdProcessingOpDescriptor
+    onFail: end
+  - state_name: pxrd_analyser.id_190.pxrdProcessingOpDescriptor
+    onSuccess: end
+    onFail: end
+  - state_name: end
+    onSuccess:
+    onFail:

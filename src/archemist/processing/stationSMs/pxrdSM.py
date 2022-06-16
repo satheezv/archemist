@@ -24,7 +24,7 @@ class PXRDSM():
             State(name='unload_plate', on_enter=['request_unloadpxrdplate','_print_state']), 
             State(name='finish', on_enter=['finalize_batch_processing,_print_state'])]
 
-        self.machine = Machine(self, states=states, initial='start')
+        self.machine = Machine(self, states=states, initial='init_state')
         
 
         ''' Transitions '''

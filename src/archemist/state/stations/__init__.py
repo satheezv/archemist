@@ -8,3 +8,4 @@ from .soluibility_station import SolubilityStation, SolubilityOpDescriptor, Solu
 from .fisher_weighing_station import FisherWeightingStation,FisherWeightStablepDescriptor, FisherWeightNowpDescriptor, FisherOutputDescriptor
 from .chemspeed_flex_station import ChemSpeedFlexStation, CSCloseDoorOpDescriptor, CSOpenDoorOpDescriptor, CSProcessingOpDescriptor, CSJobOutputDescriptor
 from .yumi_sampleprep_station import YuMiSamplePrepStation,YSStirShakeOpDescriptor,YSShakeOpDescriptor,YSStirOpDescriptor,YSJobOutputDescriptor
+from .pxrd_analyser import pxrdProcessingOpDescriptor
