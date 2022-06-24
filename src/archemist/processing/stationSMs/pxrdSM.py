@@ -1,5 +1,6 @@
 from archemist.state.stations.pxrd_analyser import pxrdProcessingOpDescriptor, pxrdJobOutputDescriptor
 from transitions import Machine, State
+from archemist.state.station import Station, StationState
 from archemist.state.robot import MoveSampleOp, RobotOutputDescriptor
 from archemist.state.robots.kukaLBRIIWA import KukaLBRTask
 from archemist.util import Location
@@ -17,12 +18,12 @@ class PXRDSM():
 
 
         states = [ State(name='init_state', on_enter='_print_state'), 
-            State(name='openpxrddoors', on_enter= ['request_openpxrd','_print_state']), 
+            State(name='open_pxrddoors', on_enter= ['request_openpxrd','_print_state']), 
             State(name='load_plate', on_enter=['request_loadpxrdplate', '_print_state']),
             State(name='close_pxrddoors', on_enter=['request_closepxrd','_print_state']),
             State(name='analyse_samples', on_enter=['request_analyse_samples', '_print_state']),
             State(name='unload_plate', on_enter=['request_unloadpxrdplate','_print_state']), 
-            State(name='finish', on_enter=['finalize_batch_processing,_print_state'])]
+            State(name='finish', on_enter=['finalize_batch_processing' , '_print_state'])]
 
         self.machine = Machine(self, states=states, initial='init_state')
         
@@ -84,6 +85,9 @@ class PXRDSM():
     def is_station_job_ready(self):
         return not self._station.has_station_op() and not self._station.has_robot_job()
 
+    def is_station_operation_complete(self):
+        return self.operation_complete
+
     def update_batch_loc_to_station(self):
         self._station.assigned_batch.location = self._station.location
 
@@ -98,6 +102,12 @@ class PXRDSM():
                 self._station.assigned_batch.add_station_op_to_current_sample(last_operation_op)
                 self._station.assigned_batch.process_current_sample()
         self.operation_complete = True
+
+        
+    def finalize_batch_processing(self):
+        self._station.process_assigned_batch()
+        self.operation_complete = False
+        self.to_init_state()
 
     def _print_state(self):
         print(f'[{self.__class__.__name__}]: current state is {self.state}')

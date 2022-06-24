@@ -1,0 +1,38 @@
+workflow:
+  Robots:
+    - class: KukaLBRIIWA
+      id: 1
+      location:
+        node_id: 12
+        graph_id: 12
+        frame_name: neutral
+      saved_frames:
+  Materials:
+    liquids:
+      - name: water
+        id: 145
+        amount_stored: 400 
+        unit: ml
+        density: 997 #g/l
+        pump_id: pUmP1
+        expiry_date: 2025-02-11
+    solids:
+      - name: sodium_chloride
+        id: 345
+        amount_stored: 10000
+        dispense_method: quantos
+        cartridge_id: cat1
+        unit: mg
+        expiry_date: 2025-02-11
+  Stations:
+    - class: pxrd_analyser
+      id: 190
+      location:
+        node_id: 14
+        graph_id: 8
+      process_state_machine:
+        type: PXRDSM
+        args:
+      parameters:
+  name: pxrd_analyser_test_workflow
+  timestamp: 08/26/2021, 15:28:26
