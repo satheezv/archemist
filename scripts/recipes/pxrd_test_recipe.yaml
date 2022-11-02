@@ -1,4 +1,4 @@
-name: test_pxrd_sp_recipe
+ name: test_pxrd_sp_recipe
 id: 198
 materials:
   liquids: [water]

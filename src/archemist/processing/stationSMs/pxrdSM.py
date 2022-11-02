@@ -1,4 +1,4 @@
-from archemist.state.stations.pxrd_analyser import pxrdProcessingOpDescriptor, pxrdJobOutputDescriptor
+ from archemist.state.stations.pxrd_analyser import pxrdProcessingOpDescriptor, pxrdJobOutputDescriptor
 from transitions import Machine, State
 from archemist.state.station import Station, StationState
 from archemist.state.robot import MoveSampleOp, RobotOutputDescriptor
