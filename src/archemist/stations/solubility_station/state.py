@@ -1,4 +1,4 @@
-from .model import TurbidityState,SolubilityOpDescriptorModel
+from .model import SolubilityState,SolubilityOpDescriptorModel
 from archemist.core.models.station_model import StationModel
 from archemist.core.state.station import Station
 from archemist.core.state.station_op import StationOpDescriptor
@@ -33,15 +33,15 @@ class SolubilityOpDescriptor(StationOpDescriptor):
         return cls(model)
 
     @property
-    def turbidity_state(self) -> TurbidityState:
+    def solubility_state(self) -> SolubilityState:
         if self._model.has_result and self._model.was_successful:
-            return self._model.turbidity_state
+            return self._model.solubility_state
 
     def complete_op(self, success: bool, **kwargs):
         self._model.has_result = True
         self._model.was_successful = success
         self._model.end_timestamp = datetime.now()
-        if 'turbidity_state' in kwargs:
-            self._model.turbidity_state = kwargs['turbidity_state']
+        if 'solubility_state' in kwargs:
+            self._model.solubility_state = kwargs['solubility_state']
         else:
             pass #print('missing read weight!!')

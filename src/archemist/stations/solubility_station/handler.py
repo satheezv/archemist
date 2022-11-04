@@ -3,7 +3,8 @@ from typing import Dict, Tuple
 from archemist.core.processing.handler import StationHandler
 from archemist.core.state.station import Station
 from .state import SolubilityOpDescriptor
-from archemist_msgs.msg import CameraCommand
+# from archemist_msgs.msg import CameraCommand
+from solubility_msgs.msg import SolubilityCommand, SolubilityResult
 
 from rospy.core import is_shutdown
 
@@ -11,7 +12,9 @@ class SolubilityStationROSHandler(StationHandler):
     def __init__(self, station:Station):
         super().__init__(station)
         rospy.init_node(f'{self._station}_handler')
-        self._camera_pub = rospy.Publisher("/camera1/commands", CameraCommand, queue_size=2)
+        # self._camera_pub = rospy.Publisher("/camera1/commands", CameraCommand, queue_size=2)
+        rospy.Subscriber("/solubility_station/results", SolubilityResult, self._solubility_callback)
+        self._pubSOLISInference = rospy.Publisher("/solubility_station/commands", SolubilityCommand, queue_size=1)
         self._received_results = False
         self._op_results = {}
         rospy.sleep(1)
@@ -31,10 +34,10 @@ class SolubilityStationROSHandler(StationHandler):
         self._received_results = False
         self._op_results = {}
         if isinstance(current_op, SolubilityOpDescriptor):
-            # TODO change the code to talk to an atual soluability 
-            self._camera_pub.publish(camera_command=CameraCommand.RECORD)
+            # TODO change the code to talk to an actual solubility 
+            self._pubSOLISInference.publish(op_name=SolubilityCommand.run_solubility)
             rospy.sleep(2)
-            self._camera_pub.publish(camera_command=CameraCommand.STOPRECORD)
+            # self._camera_pub.publish(camera_command=CameraCommand.STOPRECORD)
         else:
             rospy.logwarn(f'[{self.__class__.__name__}] Unkown operation was received')
 
